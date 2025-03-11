@@ -11,6 +11,7 @@ public class UserEntity {
 
     private String anonymousId;
     private LocalDateTime createdAt;
+    private LocalDateTime lastActiveAt;
 
     public UserEntity() {
         this.anonymousId = UUID.randomUUID().toString();
@@ -27,6 +28,14 @@ public class UserEntity {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setLastActiveAt(LocalDateTime time) {
+        this.lastActiveAt = time;
+    }
+
+    public LocalDateTime getLastActiveAt() {
+        return this.lastActiveAt;
     }
 
     @Override
