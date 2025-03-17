@@ -41,6 +41,12 @@ PUT http://localhost:8080/weather/update/Bucharest
 @deleteCity = "Suceava"
 DELETE http://localhost:8080/weather/delete/Dorohoi
 
-GET http://localhost:8080/weather/get-all
-
 # TODO add requests for your own endpoints!
+### Hello world endpoint: get response "Hello, Stranger!"
+# @prompt city The city to get the weather from
+GET http://localhost:8080/weather/test
+    ?city={{city}}
+
+
+### Delete data
+DELETE http://localhost:8080/weather/delete/Dorohoi
