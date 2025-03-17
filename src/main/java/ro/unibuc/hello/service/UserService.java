@@ -8,6 +8,7 @@ import ro.unibuc.hello.exception.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -27,6 +28,10 @@ public class UserService {
     public UserEntity getUserById(String id) throws EntityNotFoundException {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
+    }
+
+    public Optional<UserEntity> getUserBySessionId(String sessionId) {
+        return userRepository.findBySessionId(sessionId);
     }
 
     public LocalDateTime getLastActiveById(String id) throws EntityNotFoundException {

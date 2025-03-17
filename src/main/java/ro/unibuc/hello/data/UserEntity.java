@@ -9,21 +9,26 @@ public class UserEntity {
     @Id
     private String id;
 
-    private String anonymousId;
+    private String sessionId;
     private LocalDateTime createdAt;
     private LocalDateTime lastActiveAt;
 
     public UserEntity() {
-        this.anonymousId = UUID.randomUUID().toString();
+        this.sessionId = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
+        this.lastActiveAt = LocalDateTime.now();
     }
 
     public String getId() {
         return id;
     }
 
-    public String getAnonymousId() {
-        return anonymousId;
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -41,7 +46,7 @@ public class UserEntity {
     @Override
     public String toString() {
         return String.format(
-                "UserEntity[id='%s', anonymousId='%s', createdAt='%s']",
-                id, anonymousId, createdAt);
+                "UserEntity[id='%s', sessionId='%s', createdAt='%s', lastActiveAt='%s']",
+                id, sessionId, createdAt, lastActiveAt);
     }
 }

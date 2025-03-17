@@ -6,5 +6,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends MongoRepository<UserEntity, String> {
-    Optional<UserEntity> findByAnonymousId(String anonymousId);
+    Optional<UserEntity> findById(String id);
+    Optional<UserEntity> findBySessionId(String anonymousId);
 }
