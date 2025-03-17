@@ -8,9 +8,14 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import ro.unibuc.hello.data.CookieRepository;
 import ro.unibuc.hello.data.InformationEntity;
 import ro.unibuc.hello.data.InformationRepository;
+
 import ro.unibuc.hello.data.UserEntity;
 import ro.unibuc.hello.data.UserRepository;
 import ro.unibuc.hello.service.UserService;
+
+import ro.unibuc.hello.data.WeatherDataRepository;
+import ro.unibuc.hello.data.WeatherDataEntity;
+
 import jakarta.annotation.PostConstruct;
 
 @SpringBootApplication
@@ -28,6 +33,8 @@ public class HelloApplication {
 
 	@Autowired
 	private UserService userService;
+  
+	private WeatherDataRepository weatherDataRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(HelloApplication.class, args);
@@ -39,9 +46,13 @@ public class HelloApplication {
 		informationRepository.save(new InformationEntity("Overview",
 				"This is an example of using a data storage engine running separately from our applications server"));
 
+
 		userRepository.deleteAll();
 		userRepository.save(new UserEntity());
 		userService.createUserWithSession();
-	}
+
+		weatherDataRepository.deleteAll();
+		weatherDataRepository.save(new WeatherDataEntity());
+		}
 
 }
