@@ -36,10 +36,10 @@ public class WeatherService {
     @Value("${weather.api.key}")
     private String API_KEY;
     
-    public CompletableFuture<WeatherData> test() {
+    public CompletableFuture<WeatherData> test(String city) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "?key=" + API_KEY + "&q=Paris"))
+                .uri(URI.create(BASE_URL + "?key=" + API_KEY + "&q=" + city))
                 .GET()
                 .build();
 
@@ -70,12 +70,34 @@ public class WeatherService {
                 .collect(Collectors.toList());
     }
 
-    public WeatherData saveWeatherData(WeatherData weatherData) {
-        WeatherDataEntity entity = new WeatherDataEntity();
-        entity.setCity(weatherData.getCity());
-        entity.setTemperature(weatherData.getTemperature());
-        weatherDataRepository.save(entity);
-        return new WeatherData(entity.getCity(), entity.getTemperature());
+    public CompletableFuture<WeatherData> saveWeatherData(String city) {
+        return test(city).thenApply(weatherData -> {
+            WeatherDataEntity entity = new WeatherDataEntity();
+            entity.setCity(weatherData.getCity());
+            entity.setTemperature(weatherData.getTemperature());
+    
+            weatherDataRepository.save(entity);
+            return new WeatherData(entity.getCity(), entity.getTemperature());
+        });
+    }
+
+    public CompletableFuture<WeatherData> updateWeatherData(String city) {
+        return test(city).thenApply(weatherData -> {
+            WeatherDataEntity entity = weatherDataRepository.findByCity(city)
+                    .orElseThrow(() -> new EntityNotFoundException("City not found: " + city));
+    
+            entity.setTemperature(weatherData.getTemperature());
+            weatherDataRepository.save(entity);
+    
+            return new WeatherData(entity.getCity(), entity.getTemperature());
+        });
+    }
+    
+
+    public void deleteWeatherData(String city) throws EntityNotFoundException {
+        WeatherDataEntity entity = weatherDataRepository.findByCity(city)
+                .orElseThrow(() -> new EntityNotFoundException(String.valueOf(city)));
+        weatherDataRepository.delete(entity);
     }
 
    }

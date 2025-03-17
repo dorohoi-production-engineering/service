@@ -7,7 +7,9 @@
 # Requests for API endpoints of the sample project:
 
 ### Hello world endpoint: get response "Hello, Stranger!"
-GET http://localhost:8080/test
+# @prompt city The city to get the weather from
+GET http://localhost:8080/weather/test
+    ?city={{city}}
 
 ### Hello world with a request param passed.
 # When sending the request it will ask you for the name
@@ -17,18 +19,12 @@ GET http://localhost:8080/hello-world
     ?name={{name}}
 
 ### Save a greeting to database
-@postGreetingId = 1001
-@postGreetingContent = Hello!
-POST http://localhost:8080/greetings
-Content-Type: application/json
 
-{
-    "id": "{{postGreetingId}}",
-    "content": "{{postGreetingContent}}"
-}
-
+# @prompt city The city to get the weather from
+POST http://localhost:8080/weather/save/{{city}}
+    ?city={{city}}
 ### Get all greetings
-GET http://localhost:8080/greetings
+GET http://localhost:8080/weather/get-all
 
 ### Get info for greeting with given content
 # @prompt content Greeting content to look for, defaults to "Overview"
@@ -38,18 +34,13 @@ GET http://localhost:8080/info
 ### Update an existing greeting
 @putGreetingId = 1001
 @putGreetingContent = Hello again!
-PUT http://localhost:8080/greetings/{{putGreetingId}}
-Content-Type: application/json
+PUT http://localhost:8080/weather/update/Bucharest
 
-{
-    "content": "{{putGreetingContent}}"
-}
 
 ### Delete greeting
-@deleteGreetingId = 1001
-DELETE http://localhost:8080/greetings/{{deleteGreetingId}}
+@deleteCity = "Suceava"
+DELETE http://localhost:8080/weather/delete/Dorohoi
 
+GET http://localhost:8080/weather/get-all
 
 # TODO add requests for your own endpoints!
-
-GET http://localhost:8080/weather

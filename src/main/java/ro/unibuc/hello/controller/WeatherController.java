@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
+@RequestMapping("/weather")
 public class WeatherController {
 
     @Autowired
@@ -25,22 +26,34 @@ public class WeatherController {
 
     @GetMapping("/test")
     @ResponseBody
-    public CompletableFuture<WeatherData> test() {
-        return weatherService.test();
+    public CompletableFuture<WeatherData> test(String city) {
+        return weatherService.test(city);
     }
 
-    @GetMapping("/weather")
+    @GetMapping("/get-all")
     @ResponseBody
     public List<WeatherData> getAllWeatherData() {
         return weatherService.getAllWeatherData();
     }
 
-    @PostMapping("/weather")
+    @PostMapping("/save/{city}")
     @ResponseBody
-    public WeatherData createGreeting(@RequestBody WeatherData weatherData) {
-        return weatherService.saveWeatherData(weatherData);
+    public CompletableFuture<WeatherData> createWeatherData(@PathVariable String city) {
+        return weatherService.saveWeatherData(city);
     }
 
+    @PutMapping("/update/{city}")
+    @ResponseBody
+    public CompletableFuture<WeatherData> updateWeatherData(@PathVariable String city) {
+        return weatherService.updateWeatherData(city);
+    }
+
+
+    @DeleteMapping("/delete/{city}")
+    @ResponseBody
+    public void deleteWeatherData(@PathVariable String city) throws EntityNotFoundException {
+        weatherService.deleteWeatherData(city);
+    }
 
 }
 
