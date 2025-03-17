@@ -2,16 +2,17 @@ package ro.unibuc.hello.dto;
 
 public class WeatherData {
 
-    private String name;
+    private String city;
     private double temperature;
 
     public WeatherData() {
     }
 
-    public WeatherData(String name, double temperature) {
-        this.name = name;
+    public WeatherData(String city, double temperature) {
+        this.city = city;
         this.temperature = temperature;
     }
+
 
     public double getTemperature() {
         return this.temperature;
@@ -21,11 +22,12 @@ public class WeatherData {
         this.temperature = temperature;
     }
 
-    public String getName() {
-        return this.name;
+    public String getCity() {
+        return this.city;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCity(String city) {
+        this.city = city;
     }
+
 }

@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ro.unibuc.hello.data.InformationEntity;
 import ro.unibuc.hello.data.InformationRepository;
+import ro.unibuc.hello.data.WeatherDataRepository;
 import ro.unibuc.hello.dto.Greeting;
 import ro.unibuc.hello.dto.WeatherData;
+import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class WeatherService {
 
     @Autowired
-    private InformationRepository informationRepository;
+    private WeatherDataRepository weatherDataRepository;
     private HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper(); 
     private static final String BASE_URL = "http://api.weatherapi.com/v1/current.json";
@@ -59,6 +61,21 @@ public class WeatherService {
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
+    }
+
+    public List<WeatherData> getAllWeatherData() {
+        List<WeatherDataEntity> entities = weatherDataRepository.findAll();
+        return entities.stream()
+                .map(entity -> new WeatherData(entity.getCity(), entity.getTemperature()))
+                .collect(Collectors.toList());
+    }
+
+    public WeatherData saveWeatherData(WeatherData weatherData) {
+        WeatherDataEntity entity = new WeatherDataEntity();
+        entity.setCity(weatherData.getCity());
+        entity.setTemperature(weatherData.getTemperature());
+        weatherDataRepository.save(entity);
+        return new WeatherData(entity.getCity(), entity.getTemperature());
     }
 
    }
