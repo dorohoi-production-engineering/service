@@ -51,3 +51,25 @@ DELETE http://localhost:8080/greetings/{{deleteGreetingId}}
 
 
 # TODO add requests for your own endpoints!
+
+### Getting weather from a city
+# @prompt city The city to get the weather from
+GET http://localhost:8080/weather/test
+    ?city={{city}}
+
+### Get all places
+GET http://localhost:8080/weather/get-all
+
+### Save weather to database
+# @prompt city The city to get the weather from
+POST http://localhost:8080/weather/save/{{city}}
+    ?city={{city}}
+
+### Delete data
+# @prompt city The city to delete
+DELETE http://localhost:8080/weather/delete/{{city}}
+
+### Update weather from a city
+# @prompt city The city to update
+PUT http://localhost:8080/weather/update/{{city}}
+
