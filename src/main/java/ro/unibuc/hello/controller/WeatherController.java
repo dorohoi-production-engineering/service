@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import ro.unibuc.hello.data.UserEntity;
+import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.dto.Greeting;
 import ro.unibuc.hello.dto.WeatherData;
 import ro.unibuc.hello.exception.EntityNotFoundException;
