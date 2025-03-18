@@ -7,9 +7,7 @@
 # Requests for API endpoints of the sample project:
 
 ### Hello world endpoint: get response "Hello, Stranger!"
-# @prompt city The city to get the weather from
-GET http://localhost:8080/weather/test
-    ?city={{city}}
+GET http://localhost:8080/hello-world
 
 ### Hello world with a request param passed.
 # When sending the request it will ask you for the name
@@ -19,12 +17,18 @@ GET http://localhost:8080/hello-world
     ?name={{name}}
 
 ### Save a greeting to database
+@postGreetingId = 1001
+@postGreetingContent = Hello!
+POST http://localhost:8080/greetings
+Content-Type: application/json
 
-# @prompt city The city to get the weather from
-POST http://localhost:8080/weather/save/{{city}}
-    ?city={{city}}
+{
+    "id": "{{postGreetingId}}",
+    "content": "{{postGreetingContent}}"
+}
+
 ### Get all greetings
-GET http://localhost:8080/weather/get-all
+GET http://localhost:8080/greetings
 
 ### Get info for greeting with given content
 # @prompt content Greeting content to look for, defaults to "Overview"
@@ -34,19 +38,38 @@ GET http://localhost:8080/info
 ### Update an existing greeting
 @putGreetingId = 1001
 @putGreetingContent = Hello again!
-PUT http://localhost:8080/weather/update/Bucharest
+PUT http://localhost:8080/greetings/{{putGreetingId}}
+Content-Type: application/json
 
+{
+    "content": "{{putGreetingContent}}"
+}
 
 ### Delete greeting
-@deleteCity = "Suceava"
-DELETE http://localhost:8080/weather/delete/Dorohoi
+@deleteGreetingId = 1001
+DELETE http://localhost:8080/greetings/{{deleteGreetingId}}
+
 
 # TODO add requests for your own endpoints!
-### Hello world endpoint: get response "Hello, Stranger!"
+
+### Getting weather from a city
 # @prompt city The city to get the weather from
 GET http://localhost:8080/weather/test
     ?city={{city}}
 
+### Get all places
+GET http://localhost:8080/weather/get-all
+
+### Save weather to database
+# @prompt city The city to get the weather from
+POST http://localhost:8080/weather/save/{{city}}
+    ?city={{city}}
 
 ### Delete data
-DELETE http://localhost:8080/weather/delete/Dorohoi
+# @prompt city The city to delete
+DELETE http://localhost:8080/weather/delete/{{city}}
+
+### Update weather from a city
+# @prompt city The city to update
+PUT http://localhost:8080/weather/update/{{city}}
+

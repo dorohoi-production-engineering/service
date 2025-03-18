@@ -50,8 +50,14 @@ public class WeatherService {
 
                         String cityName = jsonResponse.get("location").get("name").asText();
                         double temperature = jsonResponse.get("current").get("temp_c").asDouble();
+                        String condition = jsonResponse.get("current").get("condition").get("text").asText();
+                        double wind_speed = jsonResponse.get("current").get("wind_kph").asDouble();
+                        String wind_direction = jsonResponse.get("current").get("wind_dir").asText();
+                        double precipitations = jsonResponse.get("current").get("precip_mm").asDouble();
+                        double humidity = jsonResponse.get("current").get("humidity").asDouble();
 
-                        WeatherData weatherData = new WeatherData(cityName, temperature);
+                        WeatherData weatherData = new WeatherData(cityName, temperature, condition, wind_speed,
+                        wind_direction, precipitations, humidity);
 
                         return weatherData;
                     } catch (Exception e) {
@@ -66,7 +72,8 @@ public class WeatherService {
     public List<WeatherData> getAllWeatherData() {
         List<WeatherDataEntity> entities = weatherDataRepository.findAll();
         return entities.stream()
-                .map(entity -> new WeatherData(entity.getCity(), entity.getTemperature()))
+                .map(entity -> new WeatherData(entity.getCity(), entity.getTemperature(), entity.getCondition(),
+                entity.getWindSpeed(), entity.getWindDirection(), entity.getPrecipitations(), entity.getHumidity()))
                 .collect(Collectors.toList());
     }
 
@@ -75,9 +82,15 @@ public class WeatherService {
             WeatherDataEntity entity = new WeatherDataEntity();
             entity.setCity(weatherData.getCity());
             entity.setTemperature(weatherData.getTemperature());
+            entity.setCondition(weatherData.getCondition());
+            entity.setWindSpeed(weatherData.getWindSpeed());
+            entity.setWindDirection(weatherData.getWindDirection());
+            entity.setPrecipitations(weatherData.getPrecipitations());
+            entity.setHumidity(weatherData.getHumidity());
     
             weatherDataRepository.save(entity);
-            return new WeatherData(entity.getCity(), entity.getTemperature());
+            return new WeatherData(entity.getCity(), entity.getTemperature(), entity.getCondition(),
+            entity.getWindSpeed(), entity.getWindDirection(), entity.getPrecipitations(), entity.getHumidity());
         });
     }
 
@@ -87,9 +100,16 @@ public class WeatherService {
                     .orElseThrow(() -> new EntityNotFoundException("City not found: " + city));
     
             entity.setTemperature(weatherData.getTemperature());
+            entity.setCondition(weatherData.getCondition());
+            entity.setWindSpeed(weatherData.getWindSpeed());
+            entity.setWindDirection(weatherData.getWindDirection());
+            entity.setPrecipitations(weatherData.getPrecipitations());
+            entity.setHumidity(weatherData.getHumidity());
+    
             weatherDataRepository.save(entity);
     
-            return new WeatherData(entity.getCity(), entity.getTemperature());
+            return new WeatherData(entity.getCity(), entity.getTemperature(), entity.getCondition(),
+            entity.getWindSpeed(), entity.getWindDirection(), entity.getPrecipitations(), entity.getHumidity());
         });
     }
     
