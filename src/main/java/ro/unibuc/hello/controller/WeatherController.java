@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import ro.unibuc.hello.data.SubscriptionEntity;
 import ro.unibuc.hello.data.UserEntity;
 import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.dto.Greeting;
@@ -62,9 +63,34 @@ public class WeatherController {
         weatherService.deleteWeatherData(city);
     }
 
-    @GetMapping("/subscriptions/{userId}")
+    @GetMapping("/get-subscription/{userId}")
+    @ResponseBody
     public List<WeatherDataEntity> getCitiesByUser(@PathVariable String userId) {
         return subscriptionService.getAllCitiesForUser(userId);
+    }
+
+    @PostMapping("/post-subscription/{id}")
+    @ResponseBody
+    public SubscriptionEntity createSubscription(@PathVariable String id) {
+        return subscriptionService.createSubscription(id);
+    }
+
+    @DeleteMapping("/delete-subscription/{id}")
+    @ResponseBody
+    public void deleteSubscription(@PathVariable String id) throws EntityNotFoundException {
+        subscriptionService.deleteSubscription(id);
+    }
+
+    @PutMapping("/add-city/{id}-{city}")
+    @ResponseBody
+    public void addCityToSubscription(@PathVariable String id, @PathVariable String city) throws EntityNotFoundException {
+        subscriptionService.addCityToSubscription(id, city);
+    }
+
+    @PutMapping("/remove-city/{id}-{city}")
+    @ResponseBody
+    public void deleteCityFromSubscription(@PathVariable String id, @PathVariable String city) throws EntityNotFoundException {
+        subscriptionService.deleteCityFromSubscription(id, city);
     }
 }
 

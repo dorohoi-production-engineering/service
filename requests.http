@@ -73,3 +73,16 @@ DELETE http://localhost:8080/weather/delete/{{city}}
 # @prompt city The city to update
 PUT http://localhost:8080/weather/update/{{city}}
 
+### Get all cities for an user
+GET http://localhost:8080/weather/get-subscription/1001
+
+### create and save SubscriptionEntity
+POST http://localhost:8080/weather/post-subscription/1001
+
+### delete SubscriptionEntity
+DELETE http://localhost:8080/weather/delete-subscription/1001
+
+### add city to subscription
+PUT http://localhost:8080/weather/add-city/1001-Paris
+### remove city from subscription
+PUT http://localhost:8080/weather/remove-city/1001-Paris
