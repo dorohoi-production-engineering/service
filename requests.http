@@ -77,12 +77,23 @@ PUT http://localhost:8080/weather/update/{{city}}
 GET http://localhost:8080/weather/get-subscription/1001
 
 ### create and save SubscriptionEntity
-POST http://localhost:8080/weather/post-subscription/1001
+POST http://localhost:8080/weather/post-subscription/1002
 
 ### delete SubscriptionEntity
-DELETE http://localhost:8080/weather/delete-subscription/1001
+DELETE http://localhost:8080/weather/delete-subscription/1002
 
 ### add city to subscription
-PUT http://localhost:8080/weather/add-city/1001-Paris
+PUT http://localhost:8080/weather/add-city/1001-Oslo
 ### remove city from subscription
 PUT http://localhost:8080/weather/remove-city/1001-Paris
+
+### alerts for a city
+# @prompt city The city to get the weather from
+GET http://localhost:8080/weather/get-alerts
+    ?city={{city}}
+
+### Get all alerts for an user
+GET http://localhost:8080/weather/get-alerts/1001
+
+### clear alerts
+PUT http://localhost:8080/weather/clear-alerts/1001

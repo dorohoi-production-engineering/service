@@ -8,6 +8,7 @@ import ro.unibuc.hello.data.InformationRepository;
 import ro.unibuc.hello.data.WeatherDataRepository;
 import ro.unibuc.hello.dto.Greeting;
 import ro.unibuc.hello.dto.WeatherData;
+import ro.unibuc.hello.dto.Alert;
 import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,6 +19,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,6 +36,7 @@ public class WeatherService {
     private HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper(); 
     private static final String BASE_URL = "http://api.weatherapi.com/v1/current.json";
+    private static final String ALERTS_URL = "http://api.weatherapi.com/v1/alerts.json";
 
     @Value("${weather.api.key}")
     private String API_KEY;
@@ -68,6 +73,52 @@ public class WeatherService {
             return CompletableFuture.failedFuture(e);
         }
     }
+
+    public CompletableFuture<List<Alert>> getAlerts(String city) {
+    try {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(ALERTS_URL + "?key=" + API_KEY + "&q=" + city))
+            .GET()
+            .build();
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(response -> {
+                try {
+                    JsonNode jsonResponse = objectMapper.readTree(response.body());
+                    JsonNode alertsNode = jsonResponse.path("alerts").path("alert");
+
+                    List<Alert> alerts = new ArrayList<>();
+                    if (alertsNode.isArray()) {
+                        for (JsonNode alertNode : alertsNode) {
+                            Alert alert = new Alert(
+                                alertNode.get("headline").asText(),
+                                alertNode.get("msgtype").asText(),
+                                alertNode.get("severity").asText(),
+                                alertNode.get("urgency").asText(),
+                                alertNode.get("areas").asText(),
+                                alertNode.get("category").asText(),
+                                alertNode.get("certainty").asText(),
+                                alertNode.get("event").asText(),
+                                alertNode.get("note").asText(),
+                                LocalDateTime.parse(alertNode.get("effective").asText(), DateTimeFormatter.ISO_DATE_TIME),
+                                LocalDateTime.parse(alertNode.get("expires").asText(), DateTimeFormatter.ISO_DATE_TIME),
+                                alertNode.get("desc").asText(),
+                                alertNode.get("instruction").asText()
+                            );
+                            alerts.add(alert);
+                        }
+                    }
+
+                    return alerts;
+                } catch (Exception e) {
+                    throw new RuntimeException("Error parsing JSON", e);
+                }
+            });
+    } catch (Exception e) {
+        return CompletableFuture.failedFuture(e);
+    }
+}
+
 
     public List<WeatherData> getAllWeatherData() {
         List<WeatherDataEntity> entities = weatherDataRepository.findAll();

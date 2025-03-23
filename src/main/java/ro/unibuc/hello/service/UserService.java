@@ -1,10 +1,13 @@
 package ro.unibuc.hello.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import ro.unibuc.hello.data.CookieEntity;
 import ro.unibuc.hello.data.CookieRepository;
+import ro.unibuc.hello.data.SubscriptionEntity;
+import ro.unibuc.hello.data.SubscriptionRepository;
 import ro.unibuc.hello.data.UserEntity;
 import ro.unibuc.hello.data.UserRepository;
 import ro.unibuc.hello.exception.EntityNotFoundException;
@@ -22,6 +25,9 @@ public class UserService {
 
     @Autowired
     private CookieRepository cookieRepository;
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
 
     public UserEntity createUser() {
         UserEntity user = new UserEntity();
@@ -73,6 +79,9 @@ public class UserService {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
         CookieEntity cookie = new CookieEntity(sessionId, user.getId(), expiresAt);
         cookieRepository.save(cookie);
+
+        SubscriptionEntity newSubscription = new SubscriptionEntity(user.getId(), List.of(), List.of());
+        subscriptionRepository.save(newSubscription);
 
         return user;
     }

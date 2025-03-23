@@ -6,11 +6,14 @@ import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.dto.WeatherData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import ro.unibuc.hello.dto.Alert;
 import ro.unibuc.hello.exception.EntityNotFoundException;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -27,44 +30,62 @@ public class SubscriptionService {
     private WeatherService weatherService;
 
     public List<WeatherDataEntity> getAllCitiesForUser(String id) throws EntityNotFoundException {
-        Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findById(id);
+        Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findByUserId(id);
         SubscriptionEntity entity = optionalEntity.orElseThrow(() -> new EntityNotFoundException(id));
         return entity.getCities() != null ? entity.getCities() : List.of();
     }
 
     public SubscriptionEntity createSubscription(String id) {
-        SubscriptionEntity newSubscription = new SubscriptionEntity(id, List.of());
+        SubscriptionEntity newSubscription = new SubscriptionEntity(id, List.of(), List.of());
         return subscriptionRepository.save(newSubscription);
     }
 
     public void deleteSubscription(String id) throws EntityNotFoundException {
-        SubscriptionEntity subscription = subscriptionRepository.findById(id)
+        SubscriptionEntity subscription = subscriptionRepository.findByUserId(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
         subscriptionRepository.delete(subscription);
     }
 
     public CompletableFuture<SubscriptionEntity> addCityToSubscription(String id, String city) {
-        return weatherService.test(city)
-                .thenApply(weatherData -> {
-                    WeatherDataEntity weatherDataEntity = new WeatherDataEntity(weatherData.getCity(), 
-                            weatherData.getTemperature(), weatherData.getCondition(),
-                            weatherData.getWindSpeed(), weatherData.getWindDirection(),
-                            weatherData.getPrecipitations(), weatherData.getHumidity());
-
-                    Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findById(id);
-                    SubscriptionEntity subscriptionEntity = optionalEntity.orElseThrow(() -> new EntityNotFoundException(id));
-
-                    List<WeatherDataEntity> cities = subscriptionEntity.getCities();
-                    cities.add(weatherDataEntity);
-                    subscriptionEntity.setCities(cities);
-
+        CompletableFuture<WeatherData> weatherDataFuture = weatherService.test(city);
+        CompletableFuture<List<Alert>> alertsFuture = weatherService.getAlerts(city);
+    
+        return CompletableFuture.allOf(weatherDataFuture, alertsFuture)
+                .thenApplyAsync(ignored -> {
+                    WeatherData weatherData = weatherDataFuture.join();
+                    List<Alert> alerts = alertsFuture.join();
+    
+                    WeatherDataEntity weatherDataEntity = new WeatherDataEntity(
+                            weatherData.getCity(),
+                            weatherData.getTemperature(),
+                            weatherData.getCondition(),
+                            weatherData.getWindSpeed(),
+                            weatherData.getWindDirection(),
+                            weatherData.getPrecipitations(),
+                            weatherData.getHumidity()
+                    );
+    
+                    SubscriptionEntity subscriptionEntity = subscriptionRepository.findByUserId(id)
+                            .orElseThrow(() -> new EntityNotFoundException(id));
+    
+                    subscriptionEntity.getCities().add(weatherDataEntity);
+    
+                    List<String> alertStrings = alerts.stream()
+                            .map(Alert::toString)
+                            .collect(Collectors.toList());
+    
+                    subscriptionEntity.getAlerts().addAll(alertStrings);
+    
                     return subscriptionRepository.save(subscriptionEntity);
                 });
     }
     
+    
+
+    
     public CompletableFuture<SubscriptionEntity> deleteCityFromSubscription(String id, String cityName) {
         return CompletableFuture.supplyAsync(() -> {
-            Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findById(id);
+            Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findByUserId(id);
             SubscriptionEntity subscriptionEntity = optionalEntity.orElseThrow(() -> new EntityNotFoundException(id));
 
             List<WeatherDataEntity> cities = subscriptionEntity.getCities()
@@ -76,5 +97,21 @@ public class SubscriptionService {
 
             return subscriptionRepository.save(subscriptionEntity);
         });
+    }
+
+    public List<String> getAlertsForUser(String id) throws EntityNotFoundException {
+        Optional<SubscriptionEntity> optionalEntity = subscriptionRepository.findByUserId(id);
+        SubscriptionEntity entity = optionalEntity.orElseThrow(() -> new EntityNotFoundException(id));
+        return entity.getAlerts() != null ? entity.getAlerts() : List.of();
+    }
+
+    public SubscriptionEntity clearAlertsForUser(String id) {
+
+        SubscriptionEntity subscriptionEntity = subscriptionRepository.findByUserId(id)
+                .orElseThrow(() -> new EntityNotFoundException(id)); 
+
+        subscriptionEntity.setAlerts(new ArrayList<>()); 
+
+        return subscriptionRepository.save(subscriptionEntity);
     }
 }
