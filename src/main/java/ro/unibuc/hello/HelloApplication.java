@@ -24,6 +24,7 @@ import ro.unibuc.hello.data.SubscriptionRepository;
 import ro.unibuc.hello.data.SubscriptionEntity;
 
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 
 @SpringBootApplication
 @EnableMongoRepositories(basePackageClasses = {InformationRepository.class, UserRepository.class})
@@ -78,8 +79,9 @@ public class HelloApplication {
 		
 			weatherDataRepository.save(anotherEntity);
 		});
+		
 		subscriptionRepository.deleteAll();
-		subscriptionRepository.save(new SubscriptionEntity());
+		subscriptionRepository.save(new SubscriptionEntity("1001", List.of(), List.of()));
 		}
 
 }

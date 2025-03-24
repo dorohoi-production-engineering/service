@@ -5,10 +5,12 @@ import org.springframework.stereotype.Controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import ro.unibuc.hello.data.SubscriptionEntity;
 import ro.unibuc.hello.data.UserEntity;
 import ro.unibuc.hello.data.WeatherDataEntity;
 import ro.unibuc.hello.dto.Greeting;
 import ro.unibuc.hello.dto.WeatherData;
+import ro.unibuc.hello.dto.Alert;
 import ro.unibuc.hello.exception.EntityNotFoundException;
 import ro.unibuc.hello.service.GreetingsService;
 import ro.unibuc.hello.service.WeatherService;
@@ -37,6 +39,12 @@ public class WeatherController {
         return weatherService.test(city);
     }
 
+    @GetMapping("/get-alerts")
+    @ResponseBody
+    public CompletableFuture<List<Alert>> getAlerts(String city) {
+        return weatherService.getAlerts(city);
+    }
+
     @GetMapping("/get-all")
     @ResponseBody
     public List<WeatherData> getAllWeatherData() {
@@ -62,9 +70,47 @@ public class WeatherController {
         weatherService.deleteWeatherData(city);
     }
 
-    @GetMapping("/subscriptions/{userId}")
+    @GetMapping("/get-subscription/{userId}")
+    @ResponseBody
     public List<WeatherDataEntity> getCitiesByUser(@PathVariable String userId) {
         return subscriptionService.getAllCitiesForUser(userId);
+    }
+
+    @PostMapping("/post-subscription/{id}")
+    @ResponseBody
+    public SubscriptionEntity createSubscription(@PathVariable String id) {
+        return subscriptionService.createSubscription(id);
+    }
+
+    @DeleteMapping("/delete-subscription/{id}")
+    @ResponseBody
+    public void deleteSubscription(@PathVariable String id) throws EntityNotFoundException {
+        subscriptionService.deleteSubscription(id);
+    }
+
+    @PutMapping("/add-city/{id}-{city}")
+    @ResponseBody
+    public CompletableFuture<SubscriptionEntity> addCityToSubscription(@PathVariable String id, @PathVariable String city) {
+        return subscriptionService.addCityToSubscription(id, city);
+    }
+    
+
+    @PutMapping("/remove-city/{id}-{city}")
+    @ResponseBody
+    public void deleteCityFromSubscription(@PathVariable String id, @PathVariable String city) throws EntityNotFoundException {
+        subscriptionService.deleteCityFromSubscription(id, city);
+    }
+
+    @GetMapping("/get-alerts/{userId}")
+    @ResponseBody
+    public List<String> getAlertsByUser(@PathVariable String userId) {
+        return subscriptionService.getAlertsForUser(userId);
+    }
+
+    @PutMapping("/clear-alerts/{userId}")
+    @ResponseBody
+    public SubscriptionEntity clearAlertsByUser(@PathVariable String userId) {
+        return subscriptionService.clearAlertsForUser(userId);
     }
 }
 
