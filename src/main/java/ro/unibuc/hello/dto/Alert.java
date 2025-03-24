@@ -18,11 +18,9 @@ public class Alert {
     private String desc;
     private String instruction;
 
-    // Default Constructor
     public Alert() {
     }
 
-    // Parameterized Constructor
     public Alert(String headline, String msgType, String severity, String urgency, String areas,
                  String category, String certainty, String event, String note,
                  LocalDateTime effective, LocalDateTime expires, String desc, String instruction) {

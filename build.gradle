@@ -71,12 +71,6 @@ test {
 	finalizedBy jacocoTestReport
 }
 
-
-test {
-       useJUnitPlatform()
-}
-
-
 jacocoTestReport {
 	dependsOn test
 }
