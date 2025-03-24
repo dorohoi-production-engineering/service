@@ -30,8 +30,11 @@ public class UserService {
     private SubscriptionRepository subscriptionRepository;
 
     public UserEntity createUser() {
-        UserEntity user = new UserEntity();
-        return userRepository.save(user);
+        UserEntity user = userRepository.save(new UserEntity());
+        SubscriptionEntity newSubscription = new SubscriptionEntity(user.getId(), List.of(), List.of());
+        subscriptionRepository.save(newSubscription);
+
+        return user;
     }
 
     public List<UserEntity> getAllUsers() {
@@ -79,9 +82,6 @@ public class UserService {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
         CookieEntity cookie = new CookieEntity(sessionId, user.getId(), expiresAt);
         cookieRepository.save(cookie);
-
-        SubscriptionEntity newSubscription = new SubscriptionEntity(user.getId(), List.of(), List.of());
-        subscriptionRepository.save(newSubscription);
 
         return user;
     }
