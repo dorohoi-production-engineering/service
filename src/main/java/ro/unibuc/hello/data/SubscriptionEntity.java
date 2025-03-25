@@ -36,9 +36,11 @@ public class SubscriptionEntity {
     public void setCities(List<WeatherDataEntity> cities) {
         this.cities = cities;
     }
+
     public List<String> getAlerts() {
         return alerts;
     }
+    
     public void setAlerts(List<String> alerts) {
         this.alerts = alerts;
     }
