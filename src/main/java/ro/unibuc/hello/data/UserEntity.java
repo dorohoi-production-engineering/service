@@ -23,6 +23,10 @@ public class UserEntity {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getSessionId() {
         return sessionId;
     }
