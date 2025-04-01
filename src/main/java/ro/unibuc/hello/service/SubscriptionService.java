@@ -114,4 +114,8 @@ public class SubscriptionService {
 
         return subscriptionRepository.save(subscriptionEntity);
     }
+
+    public void deleteAllSubscriptions() {
+        subscriptionRepository.deleteAll();
+    }
 }

@@ -33,15 +33,15 @@ public class WeatherController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    @GetMapping("/test")
+    @GetMapping("/test/{city}")
     @ResponseBody
-    public CompletableFuture<WeatherData> test(String city) {
+    public CompletableFuture<WeatherData> test(@PathVariable("city") String city) {
         return weatherService.test(city);
     }
 
-    @GetMapping("/get-alerts")
+    @GetMapping("/get-alerts-from-api/{city}")
     @ResponseBody
-    public CompletableFuture<List<Alert>> getAlerts(String city) {
+    public CompletableFuture<List<Alert>> getAlerts(@PathVariable("city") String city) {
         return weatherService.getAlerts(city);
     }
 
