@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_PASSWORD = credentials("docker_password")
+        DOCKER_CREDENTIALS = credentials("docker_password")
     }
 
     stages {
@@ -16,15 +16,27 @@ pipeline {
             }
         }
         stage('Tag image') {
-      steps {
-        script {
-            GIT_TAG = sh([script: 'git fetch --tag && git tag', returnStdout: true]).trim()
-            MAJOR_VERSION = sh([script: 'git tag | cut -d . -f 1', returnStdout: true]).trim()
-            MINOR_VERSION = sh([script: 'git tag | cut -d . -f 2', returnStdout: true]).trim()
-            PATCH_VERSION = sh([script: 'git tag | cut -d . -f 3', returnStdout: true]).trim()
+            steps {
+                script {
+                    GIT_TAG = sh([script: 'git fetch --tag && git tag', returnStdout: true]).trim()
+                    MAJOR_VERSION = sh([script: 'git tag | cut -d . -f 1', returnStdout: true]).trim()
+                    MINOR_VERSION = sh([script: 'git tag | cut -d . -f 2', returnStdout: true]).trim()
+                    PATCH_VERSION = sh([script: 'git tag | cut -d . -f 3', returnStdout: true]).trim()
+                    def username = env.DOCKER_CREDENTIALS_USR
+                }
+                sh "docker build -t ${username}/hello-img:${MAJOR_VERSION}.\$((${MINOR_VERSION} + 1)).${PATCH_VERSION} ."
+            }
         }
-        sh "docker build -t rarese19/hello-img:${MAJOR_VERSION}.\$((${MINOR_VERSION} + 1)).${PATCH_VERSION} ."
-      }
-}
+        stage('Push image') {
+            steps {
+                script {
+                    def username = env.DOCKER_CREDENTIALS_USR
+                    def password = env.DOCKER_CREDENTIALS_PSW
+                    def imageTag = "${MAJOR_VERSION}.$((MINOR_VERSION.toInteger() + 1)).${PATCH_VERSION}"
+                }
+                sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin'
+                sh "docker push $DOCKER_CREDENTIALS_USR/hello-img:${MAJOR_VERSION}.\$((${MINOR_VERSION} + 1)).${PATCH_VERSION}"
+            }
+        }
     }
 }
