@@ -1,5 +1,10 @@
 pipeline {
     agent any
+
+    tools {
+        jdk 'jdk21' // Numele trebuie să coincidă cu cel din Jenkins > Global Tool Configuration
+    }
+
     environment {
         DOCKER_PASSWORD = credentials("docker_password")
     }
