@@ -37,17 +37,6 @@ class UserControllerTest {
     }
 
     @Test
-    void test_createUser() throws Exception {
-        UserEntity user = new UserEntity();
-        user.setId("1");
-        when(userService.createUser()).thenReturn(user);
-
-        mockMvc.perform(post("/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"));
-    }
-
-    @Test
     void test_getAllUsers() throws Exception {
         UserEntity user1 = new UserEntity();
         user1.setId("1");

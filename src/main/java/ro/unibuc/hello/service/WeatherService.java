@@ -171,4 +171,8 @@ public class WeatherService {
         weatherDataRepository.delete(entity);
     }
 
+    public void deleteAllWeather() {
+        weatherDataRepository.deleteAll();
+    }
+
    }

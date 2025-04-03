@@ -16,23 +16,18 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
-    public UserEntity createUser() {
-        return userService.createUser();
-    }
-
     @GetMapping
     public List<UserEntity> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public UserEntity getUserById(@PathVariable String id) throws EntityNotFoundException {
+    public UserEntity getUserById(@PathVariable("id") String id) throws EntityNotFoundException {
         return userService.getUserById(id);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUserById(@PathVariable String id) throws EntityNotFoundException {
+    public void deleteUserById(@PathVariable("id") String id) throws EntityNotFoundException {
         userService.deleteUserById(id);
     }
 
@@ -42,12 +37,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/last-active")
-    public LocalDateTime getLastActiveAt(@PathVariable String id) throws EntityNotFoundException {
+    public LocalDateTime getLastActiveAt(@PathVariable("id") String id) throws EntityNotFoundException {
         return userService.getLastActiveById(id);
     }
 
     @PutMapping("/{id}/last-active")
-    public UserEntity updateLastActive(@PathVariable String id) throws EntityNotFoundException {
+    public UserEntity updateLastActive(@PathVariable("id") String id) throws EntityNotFoundException {
         return userService.updateLastActive(id);
     }
 }
