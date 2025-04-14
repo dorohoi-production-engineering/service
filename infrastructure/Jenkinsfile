@@ -11,49 +11,58 @@ pipeline {
     }
 
     stages {
+
         stage('Build & Test') {
             steps {
                 sh './gradlew clean build'
             }
         }
+
         stage('Tag image') {
             steps {
                 script {
-                    GIT_TAG = sh([script: 'git fetch --tag && git tag', returnStdout: true]).trim()
-                    MAJOR_VERSION = sh([script: 'git tag | tail -1 | cut -d . -f 1', returnStdout: true]).trim()
-                    MINOR_VERSION = sh([script: 'git tag | tail -1 | cut -d . -f 2', returnStdout: true]).trim()
-                    PATCH_VERSION = sh([script: 'git tag | tail -1 | cut -d . -f 3', returnStdout: true]).trim()
-                    USERNAME = env.DOCKER_CREDENTIALS_USR
+                    sh "git fetch --tags"
+
+                    def lastTag = sh(script: "git tag | sort --version-sort | tail -1", returnStdout: true).trim()
+                    def parts = lastTag.tokenize('.')
+                    def major = parts[0]
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2]
+
+                    env.IMAGE_TAG = "${major}.${minor + 1}.${patch}"
+                    def username = env.DOCKER_CREDENTIALS_USR
+
+                    sh "docker build -t ${username}/hello-img:${env.IMAGE_TAG} ."
                 }
-                sh "docker build -t ${USERNAME}/hello-img:${MAJOR_VERSION}.\$((${MINOR_VERSION} + 1)).${PATCH_VERSION} ."
             }
         }
+
         stage('Push image') {
             steps {
                 script {
-                    sh "git fetch --tags"
-                    lastTag = sh(script: 'git tag | tail -1', returnStdout: true).trim()
-                    parts = lastTag.tokenize('.')
-                    major = parts[0]
-                    minor = parts[1].toInteger()
-                    patch = parts[2]
+                    def username = env.DOCKER_CREDENTIALS_USR
+                    def password = env.DOCKER_CREDENTIALS_PSW
 
-                    newTag = "${major}.${minor + 1}.${patch}"
-                    env.IMAGE_TAG = newTag
+                    sh "echo ${password} | docker login -u ${username} --password-stdin"
+                    sh "docker push ${username}/hello-img:${env.IMAGE_TAG}"
 
-                    username = env.DOCKER_CREDENTIALS_USR
-                    password = env.DOCKER_CREDENTIALS_PSW
+                    sh "git tag ${env.IMAGE_TAG}"
+
+                    // push tag în remote
+                    sh "git push https://${env.GITHUB_CREDENTIALS_USR}:${env.GITHUB_CREDENTIALS_PSW}@github.com/dorohoi-production-engineering/service.git ${env.IMAGE_TAG}"
                 }
-
-                sh "echo ${password} | docker login -u ${username} --password-stdin"
-                sh "docker push ${username}/hello-img:${env.IMAGE_TAG}"
-                sh "git tag ${env.IMAGE_TAG}"
-                sh "git push https://${env.GITHUB_CREDENTIALS_USR}:${env.GITHUB_CREDENTIALS_PSW}@github.com/dorohoi-production-engineering/service.git ${env.IMAGE_TAG}"
             }
         }
-        stage('Fetch image') {
+
+        stage('Start containers') {
             steps {
                 sh "IMAGE_TAG=${env.IMAGE_TAG} DOCKER_USERNAME=${env.DOCKER_CREDENTIALS_USR} docker compose up -d hello mongo"
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                sh './gradlew testIT'
             }
         }
     }

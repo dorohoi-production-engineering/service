@@ -26,8 +26,12 @@ services:
     profiles:
       - "hello-service"
     user: 0:0
+    privileged: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
   mongo:
     image: mongo:6.0.20
     restart: always

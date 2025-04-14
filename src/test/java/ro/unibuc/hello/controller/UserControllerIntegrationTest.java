@@ -42,10 +42,12 @@ public class UserControllerIntegrationTest {
     }
 
     @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        final String MONGO_URL = "mongodb://localhost:" + mongoDBContainer.getMappedPort(27017);
-        registry.add("mongodb.connection.url", () -> MONGO_URL);
-    }
+     static void setProperties(DynamicPropertyRegistry registry) {
+         final String MONGO_URL = "mongodb://host.docker.internal:";
+         final String PORT = String.valueOf(mongoDBContainer.getMappedPort(27017));
+ 
+         registry.add("mongodb.connection.url", () -> MONGO_URL + PORT);
+     }    
 
     @Autowired
     private MockMvc mockMvc;
