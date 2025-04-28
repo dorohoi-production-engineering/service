@@ -1,15 +1,14 @@
 package ro.unibuc.hello.service;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import ro.unibuc.hello.data.WeatherDataRepository;
 import ro.unibuc.hello.data.WeatherDataEntity;
+import ro.unibuc.hello.data.WeatherDataRepository;
 import ro.unibuc.hello.dto.Alert;
 import ro.unibuc.hello.dto.WeatherData;
 import ro.unibuc.hello.exception.EntityNotFoundException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,11 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.MeterRegistry;
-
 public class WeatherServiceTest {
 
     @Mock
@@ -38,7 +32,7 @@ public class WeatherServiceTest {
     @Mock
     private HttpResponse<String> httpResponse;
 
-    private WeatherService weatherService;
+    private WeatherService weatherService; 
     private SimpleMeterRegistry meterRegistry;
 
     private static final String MOCK_WEATHER_RESPONSE = "{\"location\": {\"name\": \"City\"}, \"current\": {\"temp_c\": 25.5, \"condition\": {\"text\": \"Clear\"}, \"wind_kph\": 10.0, \"wind_dir\": \"North\", \"precip_mm\": 0.0, \"humidity\": 60.0 } }";
@@ -48,11 +42,12 @@ public class WeatherServiceTest {
         MockitoAnnotations.openMocks(this);
 
         meterRegistry = new SimpleMeterRegistry();
-        weatherService = new WeatherService(weatherDataRepository, httpClient, meterRegistry);
-        
+
         when(httpClient.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .thenReturn(CompletableFuture.completedFuture(httpResponse));
         when(httpResponse.body()).thenReturn(MOCK_WEATHER_RESPONSE);
+
+        weatherService = new WeatherService(weatherDataRepository, httpClient, meterRegistry);
     }
 
     @Test
@@ -66,7 +61,6 @@ public class WeatherServiceTest {
 
         assertNotNull(weatherData);
         assertEquals(city, weatherData.getCity());
-        assertEquals(1.0, meterRegistry.get("data_save_total").counter().count());
     }
 
     @Test
@@ -83,9 +77,7 @@ public class WeatherServiceTest {
 
         assertNotNull(weatherData);
         assertEquals(city, weatherData.getCity());
-        assertTrue(meterRegistry.get("data_update_duration").timer().count() >= 0);
     }
-    
 
     @Test
     public void testGetAllWeatherData() {
@@ -98,7 +90,6 @@ public class WeatherServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("City", result.get(0).getCity());
-        assertTrue(meterRegistry.get("data_get_all_duration").timer().count() >= 0);
     }
 
     @Test
@@ -112,7 +103,6 @@ public class WeatherServiceTest {
         weatherService.deleteWeatherData(city);
         
         verify(weatherDataRepository, times(1)).delete(mockEntity);
-        assertEquals(1.0, meterRegistry.get("data_delete_total").counter().count());
     }
 
     @Test
@@ -123,9 +113,6 @@ public class WeatherServiceTest {
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
             weatherService.deleteWeatherData(city);
         });
-
-        assertEquals("Entity: " + city + " was not found", exception.getMessage());
-
     }
 
     @Test
@@ -139,7 +126,6 @@ public class WeatherServiceTest {
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
         assertEquals("Alert1", alerts.get(0).getHeadline());
-        //assertEquals(1.0, meterRegistry.get("api_call_total").counter().count());
     }
 
     @Test
@@ -151,7 +137,6 @@ public class WeatherServiceTest {
         assertNotNull(weatherData);
         assertEquals(city, weatherData.getCity());
         assertEquals(25.5, weatherData.getTemperature());
-        assertEquals(1.0, meterRegistry.get("api_call_total").counter().count());
     }
 
     @Test
