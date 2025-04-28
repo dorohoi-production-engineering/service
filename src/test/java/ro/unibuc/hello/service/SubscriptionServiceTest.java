@@ -3,6 +3,8 @@ package ro.unibuc.hello.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import ro.unibuc.hello.data.SubscriptionEntity;
 import ro.unibuc.hello.data.SubscriptionRepository;
 import ro.unibuc.hello.data.WeatherDataEntity;
@@ -28,12 +30,15 @@ public class SubscriptionServiceTest {
     @Mock
     private WeatherService weatherService;
 
-    @InjectMocks
     private SubscriptionService subscriptionService;
+    private SimpleMeterRegistry meterRegistry;
 
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this); 
+
+        meterRegistry = new SimpleMeterRegistry();
+        subscriptionService = new SubscriptionService(subscriptionRepository, weatherService, meterRegistry);
     }
 
     @Test
@@ -63,6 +68,7 @@ public class SubscriptionServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Test City", result.get(0).getCity());
+        assertTrue(meterRegistry.get("city_get_all_duration").timer().count() >= 0);
     }
 
     @Test
@@ -120,6 +126,7 @@ public class SubscriptionServiceTest {
             assertEquals(1, result.getCities().size());
             assertEquals(city, result.getCities().get(0).getCity());
             assertEquals(1, result.getAlerts().size());
+            assertEquals(1.0, meterRegistry.get("city_save_total").counter().count());
         });
     }
 
@@ -155,6 +162,7 @@ public class SubscriptionServiceTest {
         resultFuture.thenAccept(result -> {
             assertNotNull(result);
             assertEquals(0, result.getCities().size());
+            assertEquals(1.0, meterRegistry.get("delete_save_total").counter().count());
         });
     }
 
@@ -170,6 +178,7 @@ public class SubscriptionServiceTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
+        assertTrue(meterRegistry.get("city_get_alerts_duration").timer().count() >= 0);
     }
 
     @Test

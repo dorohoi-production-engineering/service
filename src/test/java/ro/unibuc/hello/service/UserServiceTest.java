@@ -24,6 +24,7 @@ import ro.unibuc.hello.data.UserEntity;
 import ro.unibuc.hello.data.UserRepository;
 import ro.unibuc.hello.exception.EntityNotFoundException;
 
+
 @ExtendWith(SpringExtension.class)
 public class UserServiceTest {
 
