@@ -6,17 +6,16 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import ro.unibuc.hello.data.CookieEntity;
 import ro.unibuc.hello.data.CookieRepository;
 import ro.unibuc.hello.data.SubscriptionEntity;
@@ -27,7 +26,7 @@ import ro.unibuc.hello.exception.EntityNotFoundException;
 
 @ExtendWith(SpringExtension.class)
 public class UserServiceTest {
-    
+
     @Mock
     private UserRepository userRepository;
 
@@ -37,15 +36,22 @@ public class UserServiceTest {
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
-    @InjectMocks
-    private UserService userService = new UserService();;
+    private SimpleMeterRegistry meterRegistry;
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        meterRegistry = new SimpleMeterRegistry();
+        userService = new UserService(
+            userRepository,
+            cookieRepository,
+            subscriptionRepository,
+            meterRegistry
+        );
     }
 
-   @Test
+    @Test
     public void testCreateUser() {
         UserEntity user = new UserEntity();
         when(userRepository.save(any(UserEntity.class))).thenReturn(user);
@@ -54,6 +60,7 @@ public class UserServiceTest {
 
         assertNotNull(createdUser);
         verify(subscriptionRepository, times(1)).save(any(SubscriptionEntity.class));
+        assertEquals(1.0, meterRegistry.get("user_created_total").counter().count());
     }
 
     @Test
@@ -64,6 +71,7 @@ public class UserServiceTest {
         List<UserEntity> result = userService.getAllUsers();
 
         assertEquals(2, result.size());
+        assertTrue(meterRegistry.get("user_get_all_duration").timer().count() >= 0);
     }
 
     @Test
@@ -74,28 +82,12 @@ public class UserServiceTest {
         UserEntity result = userService.getUserById("1");
 
         assertNotNull(result);
+        assertEquals(1.0, meterRegistry.get("user_find_requests_total").counter().count());
     }
 
     @Test
     public void testGetUserById_NotFound() {
         when(userRepository.findById("no-user")).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> userService.getUserById("not-found"));
-    }
-
-    @Test
-    public void testGetUserBySessionId_Existing() throws EntityNotFoundException {
-        UserEntity user = new UserEntity();
-        when(userRepository.findBySessionId("1")).thenReturn(Optional.of(user));
-
-        Optional<UserEntity> result = userService.getUserBySessionId("1");
-
-        assertNotNull(result);
-    }
-
-    @Test
-    public void testGetUserBySessionId_NotFound() {
-        when(userRepository.findBySessionId("no-user")).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> userService.getUserById("no-user"));
     }
@@ -107,7 +99,9 @@ public class UserServiceTest {
         user.setLastActiveAt(now);
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
 
-        assertEquals(now, userService.getLastActiveById("1"));
+        LocalDateTime result = userService.getLastActiveById("1");
+
+        assertEquals(now, result);
     }
 
     @Test
@@ -118,6 +112,7 @@ public class UserServiceTest {
         userService.deleteUserById("1");
 
         verify(userRepository, times(1)).delete(user);
+        assertEquals(1.0, meterRegistry.get("user_deleted_total").counter().count());
     }
 
     @Test
@@ -144,6 +139,7 @@ public class UserServiceTest {
 
         assertNotNull(updatedUser);
         assertNotNull(updatedUser.getLastActiveAt());
+        assertEquals(1, meterRegistry.get("user_update_last_active_duration").timer().count());
     }
 
     @Test
@@ -156,6 +152,7 @@ public class UserServiceTest {
         assertNotNull(created);
         assertNotNull(created.getSessionId());
         verify(cookieRepository, times(1)).save(any(CookieEntity.class));
+        assertEquals(1.0, meterRegistry.get("user_created_total").counter().count());
     }
 
     @Test

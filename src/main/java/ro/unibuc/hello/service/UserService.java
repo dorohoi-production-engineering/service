@@ -1,7 +1,9 @@
 package ro.unibuc.hello.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import ro.unibuc.hello.data.CookieEntity;
@@ -20,28 +22,52 @@ import java.util.UUID;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final CookieRepository cookieRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final MeterRegistry meterRegistry;
+
+    private final Counter createdUsersCounter;
+    private final Counter deletedUsersCounter;
+    private final Counter findUserRequestsCounter;
+    private final Timer getAllUsersTimer;
+    private final Timer updateLastActiveTimer;
 
     @Autowired
-    private CookieRepository cookieRepository;
+    public UserService(UserRepository userRepository,
+                       CookieRepository cookieRepository,
+                       SubscriptionRepository subscriptionRepository,
+                       MeterRegistry meterRegistry) {
+        this.userRepository = userRepository;
+        this.cookieRepository = cookieRepository;
+        this.subscriptionRepository = subscriptionRepository;
+        this.meterRegistry = meterRegistry;
 
-    @Autowired
-    private SubscriptionRepository subscriptionRepository;
+        this.createdUsersCounter = meterRegistry.counter("user_created_total");
+        this.deletedUsersCounter = meterRegistry.counter("user_deleted_total");
+        this.findUserRequestsCounter = meterRegistry.counter("user_find_requests_total");
+        this.getAllUsersTimer = meterRegistry.timer("user_get_all_duration");
+        this.updateLastActiveTimer = meterRegistry.timer("user_update_last_active_duration");
+        meterRegistry.gauge("user_count", userRepository, UserRepository::count);
+    }
 
     public UserEntity createUser() {
         UserEntity user = userRepository.save(new UserEntity());
         SubscriptionEntity newSubscription = new SubscriptionEntity(user.getId(), List.of(), List.of());
         subscriptionRepository.save(newSubscription);
-
+        createdUsersCounter.increment();
         return user;
     }
 
     public List<UserEntity> getAllUsers() {
-        return userRepository.findAll();
+        Timer.Sample sample = Timer.start(meterRegistry);
+        List<UserEntity> users = userRepository.findAll();
+        sample.stop(getAllUsersTimer);
+        return users;
     }
 
     public UserEntity getUserById(String id) throws EntityNotFoundException {
+        findUserRequestsCounter.increment();
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
     }
@@ -51,12 +77,13 @@ public class UserService {
     }
 
     public LocalDateTime getLastActiveById(String id) throws EntityNotFoundException {
-        UserEntity user =  userRepository.findById(id)
+        UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
         return user.getLastActiveAt();
     }
 
     public void deleteUserById(String id) throws EntityNotFoundException {
+        deletedUsersCounter.increment();
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
         userRepository.delete(user);
@@ -67,10 +94,13 @@ public class UserService {
     }
 
     public UserEntity updateLastActive(String id) throws EntityNotFoundException {
+        Timer.Sample sample = Timer.start(meterRegistry);
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
         user.setLastActiveAt(LocalDateTime.now());
-        return userRepository.save(user);
+        UserEntity updated = userRepository.save(user);
+        sample.stop(updateLastActiveTimer);
+        return updated;
     }
 
     public UserEntity createUserWithSession() {
@@ -83,6 +113,7 @@ public class UserService {
         CookieEntity cookie = new CookieEntity(sessionId, user.getId(), expiresAt);
         cookieRepository.save(cookie);
 
+        createdUsersCounter.increment();
         return user;
     }
 
