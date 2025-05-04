@@ -18,3 +18,40 @@ groups:
         annotations:
           summary: Increased info retrieval rate {{ $labels.value}} {{ $value }}
           description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: WARNING-UserServiceErrors
+        expr: increase(user_service_errors_total[1m]) > 3
+        for: 20s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Erori frecvente în UserService"
+          description: "Mai mult de 3 erori în 20s. VALUE={{ $value }}, LABELS={{ $labels }}"
+
+      - alert: CRITICAL-HelloAppDown
+        expr: up{job="spring-hello-app"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Aplicația Spring nu mai răspunde"
+          description: "Serviciul hello (job='spring-hello-app') nu mai este disponibil pentru Prometheus"
+
+      - alert: CRITICAL-DataBaseDown
+        expr: up{job="mongodb"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB nu mai răspunde"
+          description: "MongoDB (job='mongodb') nu mai este disponibil pentru Prometheus"
+
+      - alert: WARNING-GetAllUsersSlow
+        expr: rate(user_get_all_duration_seconds_sum[1m]) / rate(user_get_all_duration_seconds_count[1m]) > 0.3
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "getAllUsers() este lent"
+          description: "Durata medie a depășit 300ms. VALUE={{ $value }}, LABELS={{ $labels }}"
+
