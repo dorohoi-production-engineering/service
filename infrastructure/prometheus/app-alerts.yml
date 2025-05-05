@@ -55,3 +55,21 @@ groups:
           summary: "getAllUsers() este lent"
           description: "Durata medie a depășit 300ms. VALUE={{ $value }}, LABELS={{ $labels }}"
 
+      - alert: WARNING-WeatherApiCallSpike
+        expr: increase(weather_api_call_total[1m]) > 10
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Creștere în numărul de apeluri către Weather API"
+          description: "Apeluri excesive detectate. VALUE={{ $value }}, LABELS={{ $labels }}"
+
+      - alert: WARNING-GetAlertsSlow
+        expr: rate(city_get_alerts_duration_sum[1m]) / rate(city_get_alerts_duration_count[1m]) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Extragerea alertelor este lentă"
+          description: "Extragerea alertelor este lentă (>0.5s medie). VALUE={{ $value }}"
+

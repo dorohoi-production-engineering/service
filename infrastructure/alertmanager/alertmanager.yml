@@ -1,8 +1,8 @@
 global:
   smtp_smarthost: 'sandbox.smtp.mailtrap.io:2525'
   smtp_from: 'alerts@example.com'
-  smtp_auth_username: 'f1906ab6017839'
-  smtp_auth_password: '44419bdcef4863'
+  smtp_auth_username: '0ac7a36bdffe70'
+  smtp_auth_password: '8a2e8d2b662528'
 
 route:
   receiver: 'mailtrap-receiver'
@@ -15,3 +15,4 @@ receivers:
     email_configs:
       - to: 'alerts@example.com'
         send_resolved: true
+
